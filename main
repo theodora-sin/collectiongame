@@ -1,0 +1,188 @@
+let screen = 0;
+let a1Button, a2Button;
+let paddle, ball;
+let catcher, fallingObject;
+let score = 0;
+let backgroundImg;
+
+function preload() {
+  backgroundImg = loadImage("assets/images.jpeg");
+}
+
+function setup() {
+  new Canvas(400, 400); // for p5play v3
+  textAlign(CENTER);
+  textSize(20);
+  textFont("Arial");
+
+  // Buttons for screen 0
+  a1Button = new Sprite();
+  a1Button.width = 100;
+  a1Button.height = 40;
+  a1Button.color = 'plum';
+  a1Button.text = 'Ping Pong';
+  a1Button.textSize = 16;
+  a1Button.collider = 'k';
+  a1Button.visible = false;
+
+  a2Button = new Sprite();
+  a2Button.width = 100;
+  a2Button.height = 40;
+  a2Button.color = 'plum';
+  a2Button.text = 'Collect Items';
+  a2Button.textSize = 16;
+  a2Button.collider = 'k';
+  a2Button.visible = false;
+}
+
+function draw() {
+  clear();
+
+  if (screen === 0) {
+    drawHomeScreen();
+  } else if (screen === 1) {
+    drawPingPongGame();
+  } else if (screen === 2) {
+    drawCollectionGame();
+  }
+}
+
+// -------- Home Screen --------
+function drawHomeScreen() {
+  background('pink');
+  fill(133, 133, 173);
+  text("Welcome to this platform, please choose a game.", width / 2, height / 2 - 100);
+
+  a1Button.visible = true;
+  a2Button.visible = true;
+
+  a1Button.x = width / 2 - 60;
+  a1Button.y = height / 2 + 100;
+
+  a2Button.x = width / 2 + 60;
+  a2Button.y = height / 2 + 100;
+
+  if (a1Button.mouse.pressed()) {
+    setupPingPong();
+    screen = 1;
+  }
+
+  if (a2Button.mouse.pressed()) {
+    setupCollection();
+    screen = 2;
+  }
+}
+
+// -------- Ping Pong Game Setup + Draw --------
+function setupPingPong() {
+  clearSprites();
+  score = 0;
+
+  a1Button.visible = false;
+  a2Button.visible = false;
+
+  paddle = new Sprite(200, 380, 100, 20);
+  paddle.color = color(95, 158, 160);
+  paddle.rotationLock = true;
+
+  ball = new Sprite(200, 50, 20);
+  ball.color = color(0, 128, 128);
+  ball.direction = 'down';
+  ball.speed = 5;
+  ball.bounciness = 1;
+  ball.friction = 0;
+}
+
+function drawPingPongGame() {
+  background(224);
+  paddle.moveTowards(mouseX, 380, 1);
+
+  if (ball.collides(paddle)) {
+    ball.speed = random(5, 10);
+    score += 1;
+    ball.direction += random(-10, 10);
+  }
+
+  if (ball.y > height - 10) {
+    ball.speed = 0;
+    fill(0);
+    textSize(24);
+    text('You lose!', width / 2, height / 2);
+    return;
+  }
+
+  fill(0, 128, 128);
+  textAlign(LEFT);
+  textSize(20);
+  text('Score = ' + score, 10, 30);
+}
+
+// -------- Collection Game Setup + Draw --------
+function setupCollection() {
+  clearSprites();
+  score = 0;
+
+  a1Button.visible = false;
+  a2Button.visible = false;
+
+  catcher = new Sprite(200, 380, 100, 20, 'k');
+  catcher.color = color(95, 158, 160);
+
+  fallingObject = new Sprite(random(width), 0, 10);
+  fallingObject.color = color(0, 128, 128);
+  fallingObject.vel.y = 2;
+}
+
+function drawCollectionGame() {
+  background(224);
+  image(backgroundImg, 0, 0, width, height);
+
+  if (kb.pressing('left')) {
+    catcher.vel.x = -3;
+  } else if (kb.pressing('right')) {
+    catcher.vel.x = 3;
+  } else {
+    catcher.vel.x = 0;
+  }
+
+  if (fallingObject.y > height) {
+    score--;
+    fallingObject.y = 0;
+    fallingObject.x = random(width);
+    fallingObject.vel.y = random(1, 5);
+  }
+
+  if (fallingObject.collides(catcher)) {
+    score++;
+    fallingObject.y = 0;
+    fallingObject.x = random(width);
+    fallingObject.vel.y = random(1, 5);
+  }
+
+  fill(0);
+  textSize(12);
+  text("Move with arrow keys to catch items.", width - 100, 20);
+  textSize(20);
+  text("Score = " + score, 10, 30);
+
+  if (score < 0) {
+    fill(0);
+    textSize(32);
+    text("You lose!", width / 2, height / 2);
+    fallingObject.remove();
+    catcher.remove();
+  } else if (score >= 10) {
+    fill(0);
+    textSize(32);
+    text("You win!", width / 2, height / 2);
+    fallingObject.remove();
+    catcher.remove();
+  }
+}
+
+// -------- Clear all Sprites --------
+function clearSprites() {
+  if (typeof allSprites !== 'undefined') {
+    allSprites.forEach(sprite => sprite.remove());
+  }
+}
